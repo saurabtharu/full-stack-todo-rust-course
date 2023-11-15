@@ -1,3 +1,4 @@
+pub mod database;
 pub mod routes;
 
 use axum::{
