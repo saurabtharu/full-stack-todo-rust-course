@@ -4,3 +4,4 @@
 **/integration-tests/**/*.png
 **/target
 **/dist
+.env
