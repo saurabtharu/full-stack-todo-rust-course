@@ -416,6 +416,7 @@ dependencies = [
  "dotenvy",
  "dotenvy_macro",
  "sea-orm",
+ "serde",
  "tokio",
 ]
 
