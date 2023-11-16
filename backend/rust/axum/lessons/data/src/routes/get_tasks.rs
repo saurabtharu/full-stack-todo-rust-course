@@ -1,8 +1,12 @@
-use axum::{extract::Path, http::StatusCode, Extension, Json};
-use sea_orm::{DatabaseConnection, EntityTrait};
-use serde::Serialize;
+use axum::{
+    extract::{Path, Query},
+    http::StatusCode,
+    Extension, Json,
+};
+use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
+use serde::{Deserialize, Serialize};
 
-use crate::database::tasks::Entity as Tasks;
+use crate::database::tasks::{self, Entity as Tasks};
 
 #[derive(Debug, Serialize)]
 pub struct ResponseTask {
@@ -12,6 +16,10 @@ pub struct ResponseTask {
     description: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct GetTaskQueryParams {
+    priority: Option<String>,
+}
 pub async fn get_one_task(
     Path(task_id): Path<i32>,
     Extension(database): Extension<DatabaseConnection>,
@@ -31,8 +39,19 @@ pub async fn get_one_task(
 
 pub async fn get_all_tasks(
     Extension(database): Extension<DatabaseConnection>,
+    Query(params): Query<GetTaskQueryParams>,
 ) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
+    let mut priority_filter = Condition::all();
+    if let Some(priority) = params.priority {
+        priority_filter = if priority.is_empty() {
+            priority_filter.add(tasks::Column::Priority.is_null())
+        } else {
+            priority_filter.add(tasks::Column::Priority.eq(priority))
+        };
+    }
     let all_tasks = Tasks::find()
+        // .filter(tasks::Column::Priority.eq(params.priority))
+        .filter(priority_filter)
         .all(&database)
         .await
         .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?
