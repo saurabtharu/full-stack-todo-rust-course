@@ -1,10 +1,6 @@
 pub mod database;
 pub mod routes;
 
-use axum::{
-    routing::{get, post},
-    Router,
-};
 use sea_orm::Database;
 
 pub async fn run(database_url: String) {

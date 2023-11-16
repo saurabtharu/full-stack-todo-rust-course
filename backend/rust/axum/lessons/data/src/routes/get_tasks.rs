@@ -1,6 +1,6 @@
 use axum::{extract::Path, http::StatusCode, Extension, Json};
 use sea_orm::{DatabaseConnection, EntityTrait};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::database::tasks::Entity as Tasks;
 
@@ -11,6 +11,7 @@ pub struct ResponseTask {
     priority: Option<String>,
     description: Option<String>,
 }
+
 pub async fn get_one_task(
     Path(task_id): Path<i32>,
     Extension(database): Extension<DatabaseConnection>,
@@ -26,4 +27,24 @@ pub async fn get_one_task(
     } else {
         Err(StatusCode::NOT_FOUND)
     }
+}
+
+pub async fn get_all_tasks(
+    Extension(database): Extension<DatabaseConnection>,
+) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
+    let all_tasks = Tasks::find()
+        .all(&database)
+        .await
+        .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?
+        .into_iter()
+        .map(|db_task| ResponseTask {
+            ..ResponseTask {
+                id: db_task.id,
+                title: db_task.title,
+                priority: db_task.priority,
+                description: db_task.description,
+            }
+        })
+        .collect();
+    Ok(Json(all_tasks))
 }
