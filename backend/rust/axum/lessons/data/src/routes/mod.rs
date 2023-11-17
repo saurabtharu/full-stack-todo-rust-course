@@ -1,4 +1,5 @@
 pub mod create_task;
+pub mod create_user;
 pub mod custom_json_extrator;
 pub mod delete_task;
 pub mod get_tasks;
@@ -13,6 +14,7 @@ use axum::{
 };
 
 use create_task::create_task;
+use create_user::create_user;
 use custom_json_extrator::custom_json_extrator;
 use delete_task::delete_task;
 use get_tasks::{get_all_tasks, get_one_task};
@@ -33,5 +35,6 @@ pub async fn create_routes(database: DatabaseConnection) -> Router {
         .route("/tasks/:task_id", put(atomic_update))
         .route("/tasks/:task_id", patch(partial_update))
         .route("/tasks/:task_id", delete(delete_task))
+        .route("/users", post(create_user))
         .layer(Extension(database))
 }
