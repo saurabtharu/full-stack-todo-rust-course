@@ -3,12 +3,14 @@ pub mod create_task;
 pub mod custom_json_extrator;
 pub mod delete_task;
 pub mod get_tasks;
+pub mod guard;
 pub mod hello_world;
 pub mod partial_update_task;
 pub mod update_tasks;
 pub mod validate_with_serde;
 
-use axum::{
+use axum::middleware;
+pub use axum::{
     routing::{delete, get, patch, post, put},
     Extension, Router,
 };
@@ -18,6 +20,7 @@ use create_task::create_task;
 use custom_json_extrator::custom_json_extrator;
 use delete_task::delete_task;
 use get_tasks::{get_all_tasks, get_one_task};
+use guard::guard;
 use hello_world::hello_world;
 use partial_update_task::partial_update;
 use sea_orm::DatabaseConnection;
@@ -26,6 +29,8 @@ use validate_with_serde::validate_with_serde;
 
 pub async fn create_routes(database: DatabaseConnection) -> Router {
     Router::new()
+        .route("/users/logout", post(logout))
+        .route_layer(middleware::from_fn(guard))
         .route("/hello_world", get(hello_world))
         .route("/validate_data", post(validate_with_serde))
         .route("/custom_json_extrator", post(custom_json_extrator))
@@ -37,6 +42,5 @@ pub async fn create_routes(database: DatabaseConnection) -> Router {
         .route("/tasks/:task_id", delete(delete_task))
         .route("/users", post(create_user))
         .route("/users/login", post(login_user))
-        .route("/users/logout", post(logout))
         .layer(Extension(database))
 }

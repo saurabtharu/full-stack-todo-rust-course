@@ -1,18 +1,14 @@
 use axum::{
     headers::{authorization::Bearer, Authorization},
-    http::{status, StatusCode},
+    http::StatusCode,
     Extension, Json, TypedHeader,
 };
 use sea_orm::{
-    sea_query::SearchOrder, ActiveModelTrait, ColumnTrait, DatabaseBackend, DatabaseConnection,
-    EntityTrait, IntoActiveModel, QueryFilter,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    database::users::{self, Entity as Users},
-    routes::custom_json_extrator::UserResponse,
-};
+use crate::database::users::{self, Entity as Users, Model};
 
 #[derive(Deserialize)]
 pub struct RequestUser {
@@ -81,22 +77,14 @@ pub async fn login_user(
 }
 
 pub async fn logout(
-    authorization: TypedHeader<Authorization<Bearer>>,
+    // authorization: TypedHeader<Authorization<Bearer>>,
     Extension(database): Extension<DatabaseConnection>,
+    Extension(user): Extension<Model>,
 ) -> Result<(), StatusCode> {
-    let token = authorization.token();
-    let mut user = if let Some(user) = Users::find()
-        .filter(users::Column::Token.eq(token))
-        .one(&database)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-    {
-        user.into_active_model()
-    } else {
-        return Err(StatusCode::UNAUTHORIZED);
-    };
+    let mut user = user.into_active_model();
 
     user.token = sea_orm::ActiveValue::Set(None);
+
     user.save(&database)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
