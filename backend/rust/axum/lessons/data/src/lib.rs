@@ -1,5 +1,6 @@
 pub mod database;
 pub mod routes;
+pub mod utils;
 
 use sea_orm::Database;
 

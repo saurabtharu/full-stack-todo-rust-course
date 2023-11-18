@@ -30,8 +30,8 @@ use validate_with_serde::validate_with_serde;
 pub async fn create_routes(database: DatabaseConnection) -> Router {
     Router::new()
         .route("/users/logout", post(logout))
-        .route_layer(middleware::from_fn(guard))
         .route("/hello_world", get(hello_world))
+        .route_layer(middleware::from_fn(guard))
         .route("/validate_data", post(validate_with_serde))
         .route("/custom_json_extrator", post(custom_json_extrator))
         .route("/tasks", post(create_task))
