@@ -1,31 +1,46 @@
 use crate::{
-    database::users::{self, Entity as Users},
+    database::{
+        self,
+        users::{self, Entity as Users},
+    },
     utils::{app_error::AppError, jwt::is_valid},
 };
 use axum::{
+    extract::State,
     headers::{authorization::Bearer, Authorization, HeaderMapExt},
     http::{Request, StatusCode},
     middleware::Next,
     response::Response,
+    TypedHeader,
 };
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{sea_query::token, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
-pub async fn guard<T>(mut request: Request<T>, next: Next<T>) -> Result<Response, AppError> {
+pub async fn guard<T>(
+    State(database): State<DatabaseConnection>,
+    TypedHeader(token): TypedHeader<Authorization<Bearer>>,
+    mut request: Request<T>,
+    next: Next<T>,
+) -> Result<Response, AppError> {
+    let token = token.token().to_owned();
+    /*
     let token = request
         .headers()
         .typed_get::<Authorization<Bearer>>()
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing Bearer token"))?
         .token()
         .to_owned();
+    */
 
+    /*
     let database = request
         .extensions()
         .get::<DatabaseConnection>()
         .ok_or_else(|| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error"))?;
+    */
 
     let user = Users::find()
         .filter(users::Column::Token.eq(Some(token.clone())))
-        .one(database)
+        .one(&database)
         .await
         .map_err(|_error| {
             AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")

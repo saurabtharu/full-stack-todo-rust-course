@@ -29,7 +29,7 @@ where
 
     async fn from_request(request: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
         let Json(user) = request
-            .extract::<Json<RequestUser>>()
+            .extract::<Json<RequestUser>, _>()
             .await
             .map_err(|error| (StatusCode::BAD_REQUEST, format!("{}", error)))?;
 

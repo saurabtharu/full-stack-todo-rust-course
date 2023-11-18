@@ -9,7 +9,7 @@ pub mod partial_update_task;
 pub mod update_tasks;
 pub mod validate_with_serde;
 
-use axum::middleware;
+use axum::{extract::FromRef, middleware};
 pub use axum::{
     routing::{delete, get, patch, post, put},
     Extension, Router,
@@ -27,11 +27,17 @@ use sea_orm::DatabaseConnection;
 use update_tasks::atomic_update;
 use validate_with_serde::validate_with_serde;
 
+#[derive(Clone, FromRef)]
+pub struct AppState {
+    database: DatabaseConnection,
+}
+
 pub async fn create_routes(database: DatabaseConnection) -> Router {
+    let app_state = AppState { database };
     Router::new()
         .route("/users/logout", post(logout))
         .route("/hello_world", get(hello_world))
-        .route_layer(middleware::from_fn(guard))
+        .route_layer(middleware::from_fn_with_state(app_state.clone(), guard))
         .route("/validate_data", post(validate_with_serde))
         .route("/custom_json_extrator", post(custom_json_extrator))
         .route("/tasks", post(create_task))
@@ -42,5 +48,6 @@ pub async fn create_routes(database: DatabaseConnection) -> Router {
         .route("/tasks/:task_id", delete(delete_task))
         .route("/users", post(create_user))
         .route("/users/login", post(login_user))
-        .layer(Extension(database))
+        // .layer(Extension(database))
+        .with_state(app_state)
 }

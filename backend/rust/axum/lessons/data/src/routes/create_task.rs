@@ -1,4 +1,5 @@
 use axum::{
+    extract::State,
     headers::{authorization::Bearer, Authorization},
     http::StatusCode,
     Extension, Json, TypedHeader,
@@ -20,7 +21,8 @@ pub struct RequestTask {
 
 pub async fn create_task(
     authorization: TypedHeader<Authorization<Bearer>>,
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_task): Json<RequestTask>,
 ) -> Result<(), StatusCode> {
     let token = authorization.token();

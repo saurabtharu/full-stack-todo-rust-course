@@ -1,7 +1,7 @@
-use axum::Extension;
+use axum::{extract::State, Extension};
 
 use super::SharedData;
 
-pub async fn middleware_msg(Extension(shared_data): Extension<SharedData>) -> String {
-    shared_data.msg
+pub async fn middleware_msg(State(message): State<String>) -> String {
+    message
 }

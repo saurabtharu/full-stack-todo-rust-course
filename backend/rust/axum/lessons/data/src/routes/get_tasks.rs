@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     http::StatusCode,
     Extension, Json,
 };
@@ -25,7 +25,8 @@ pub struct GetTaskQueryParams {
 }
 pub async fn get_one_task(
     Path(task_id): Path<i32>,
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
 ) -> Result<Json<ResponseTask>, StatusCode> {
     let task = Tasks::find_by_id(task_id)
         .filter(tasks::Column::DeletedAt.is_null())
@@ -47,7 +48,8 @@ pub async fn get_one_task(
 }
 
 pub async fn get_all_tasks(
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Query(params): Query<GetTaskQueryParams>,
 ) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
     let mut priority_filter = Condition::all();

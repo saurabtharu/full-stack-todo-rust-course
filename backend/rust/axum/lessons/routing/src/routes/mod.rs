@@ -13,6 +13,7 @@ mod set_middleware_custom_header;
 mod validate_with_serde;
 
 use axum::{
+    extract::FromRef,
     http::Method,
     middleware,
     routing::{get, post},
@@ -34,7 +35,7 @@ use returns_201::returns_201;
 use set_middleware_custom_header::set_middleware_custom_header;
 use validate_with_serde::validate_with_serde;
 
-#[derive(Clone)]
+#[derive(Clone, FromRef)]
 pub struct SharedData {
     pub msg: String,
 }
@@ -45,7 +46,7 @@ pub fn create_routes() -> Router {
         .allow_origin(Any);
 
     let shared_data = SharedData {
-        msg: "Hello from CORS headers".to_owned(),
+        msg: "Hello from CORS headers updated using state".to_owned(),
     };
 
     Router::new()
@@ -60,7 +61,8 @@ pub fn create_routes() -> Router {
         .route("/query_params", get(query_params))
         .route("/mirror_custom_header", get(mirror_custom_header))
         .route("/middleware_message", get(middleware_msg))
-        .layer(Extension(shared_data))
+        // .layer(Extension(shared_data))
+        .with_state(shared_data)
         .layer(cors)
         .route("/always_error", get(always_error))
         .route("/returns_201", post(returns_201))

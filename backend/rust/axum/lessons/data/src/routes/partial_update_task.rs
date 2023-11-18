@@ -1,5 +1,6 @@
 use crate::database::tasks;
 use crate::database::tasks::Entity as Tasks;
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::{extract::Path, Extension, Json};
 use sea_orm::ActiveValue::Set;
@@ -39,7 +40,8 @@ pub struct RequestTask {
 
 pub async fn partial_update(
     Path(task_id): Path<i32>,
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_task): Json<RequestTask>,
 ) -> Result<(), StatusCode> {
     let mut db_task = if let Some(task) = Tasks::find_by_id(task_id)

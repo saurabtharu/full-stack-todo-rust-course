@@ -1,4 +1,5 @@
 use axum::{
+    extract::State,
     headers::{authorization::Bearer, Authorization},
     http::StatusCode,
     Extension, Json, TypedHeader,
@@ -27,7 +28,8 @@ pub struct ResponseUser {
 }
 
 pub async fn create_user(
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_user): Json<RequestUser>,
 ) -> Result<Json<ResponseUser>, AppError> {
     let jwt = create_jwt()?;
@@ -49,7 +51,8 @@ pub async fn create_user(
 }
 
 pub async fn login_user(
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Json(request_user): Json<RequestUser>,
 ) -> Result<Json<ResponseUser>, AppError> {
     let db_user = Users::find()
@@ -88,7 +91,8 @@ pub async fn login_user(
 
 pub async fn logout(
     // authorization: TypedHeader<Authorization<Bearer>>,
-    Extension(database): Extension<DatabaseConnection>,
+    // Extension(database): Extension<DatabaseConnection>,
+    State(database): State<DatabaseConnection>,
     Extension(user): Extension<Model>,
 ) -> Result<(), StatusCode> {
     let mut user = user.into_active_model();
